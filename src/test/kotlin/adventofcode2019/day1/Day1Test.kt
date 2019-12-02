@@ -1,9 +1,7 @@
 package adventofcode2019.day1
 
-import adventofcode2019.day1.calculate
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
-import org.junit.jupiter.api.Nested
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
