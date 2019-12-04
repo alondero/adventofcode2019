@@ -104,12 +104,12 @@ U98,R91,D20,R16,D67,R40,U7,R15,U6,R7 = 410 steps
 What is the fewest combined steps the wires must take to reach an intersection?
  */
 fun calculateShortestSignalDelayIntersection(wireA: String, wireB: String): Int {
-    val coordinateMapA = coordinateMapAndSignalDelayFor(wireA).toMap()
-    val coordinateMapB = coordinateMapAndSignalDelayFor(wireB).toMap()
+    val coordinateMapA = coordinateMapAndSignalDelayFor(wireA)
+    val coordinateMapB = coordinateMapAndSignalDelayFor(wireB)
 
-    return coordinateMapAndSignalDelayFor(wireA).map { it.key }
-        .intersect(coordinateMapAndSignalDelayFor(wireB).map { it.key })
-        .map { coordinateMapA[it]!! + coordinateMapB[it]!! }
+    return coordinateMapA.map { it.key }
+        .intersect(coordinateMapB.map { it.key })
+        .map { coordinateMapA.getValue(it) + coordinateMapB.getValue(it) }
         .min()!!
 }
 
