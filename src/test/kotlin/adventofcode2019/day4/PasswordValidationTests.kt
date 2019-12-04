@@ -43,6 +43,7 @@ class PasswordValidationTests {
         @CsvSource(
             "111444,false",
             "111111122,true",
+            "11122211,true",
             "1112,false",
             "111211,true",
             "123444,false",
