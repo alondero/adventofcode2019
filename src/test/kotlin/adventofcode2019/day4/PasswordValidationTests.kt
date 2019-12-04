@@ -31,6 +31,29 @@ class PasswordValidationTests {
 
         @ParameterizedTest(name = "input: {0}, isPassword: {1}")
         @CsvSource(
+            "111444,false",
+            "112233,true",
+            "111123,false"
+        )
+        fun `must not contain more than 3 adjacent digits`(input: Int, isPassword: Boolean) {
+            assertThat(ContainsAdjacentPairOfDigits().verifyPassword(input), equalTo(isPassword))
+        }
+
+        @ParameterizedTest(name = "input: {0}, isPassword: {1}")
+        @CsvSource(
+            "111444,false",
+            "111111122,true",
+            "1112,false",
+            "111211,true",
+            "123444,false",
+            "111122,true"
+        )
+        fun `can contain more than 3 adjacent digits if a single pair of adjacent digits exists`(input: Int, isPassword: Boolean) {
+            assertThat(DoesNotContain3OrMoreAdjacentDigitsUnlessADifferentSinglePairExists().verifyPassword(input), equalTo(isPassword))
+        }
+
+        @ParameterizedTest(name = "input: {0}, isPassword: {1}")
+        @CsvSource(
             "998877,false",
             "112233,true"
         )
@@ -47,5 +70,15 @@ class PasswordValidationTests {
     )
     fun `adheresToAllRules`(input: Int, isPassword: Boolean) {
         assertThat(PasswordVerifier(listOf(LengthOfPassword(), ContainsAdjacentPairOfDigits(), AscendingDigits())).verifyPassword(input), equalTo(isPassword))
+    }
+
+    @ParameterizedTest(name = "input: {0}, isPassword: {1}")
+    @CsvSource(
+        "112233,true",
+        "123444,false",
+        "111122,true"
+    )
+    fun `adheresToAllRulesPart2`(input: Int, isPassword: Boolean) {
+        assertThat(PasswordVerifier(listOf(LengthOfPassword(), ContainsAdjacentPairOfDigits(), DoesNotContain3OrMoreAdjacentDigitsUnlessADifferentSinglePairExists(), AscendingDigits())).verifyPassword(input), equalTo(isPassword))
     }
 }

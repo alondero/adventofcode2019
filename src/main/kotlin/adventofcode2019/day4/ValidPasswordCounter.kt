@@ -17,16 +17,38 @@ Other than the range rule, the following are true:
 123789 does not meet these criteria (no double).
 How many different passwords within the range given in your puzzle input meet these criteria?
 */
+
+/*
+--- Part Two ---
+An Elf just remembered one more important detail: the two adjacent matching digits are not part of a larger group of matching digits.
+
+Given this additional criterion, but still ignoring the range rule, the following are now true:
+
+112233 meets these criteria because the digits never decrease and all repeated digits are exactly two digits long.
+123444 no longer meets the criteria (the repeated 44 is part of a larger group of 444).
+111122 meets the criteria (even though 1 is repeated more than twice, it still contains a double 22).
+How many different passwords within the range given in your puzzle input meet all of the criteria?
+*/
+
 class ValidPasswordCounter(private val verifier: PasswordVerifier) {
     fun countValidPassword(intRange: IntRange) = intRange.filter { verifier.verifyPassword(it) }.count()
 }
 
 fun main(args: Array<String>) {
-    val passwordCounter = ValidPasswordCounter(PasswordVerifier(listOf(
+    val passwordCounterPart1 = ValidPasswordCounter(PasswordVerifier(listOf(
         LengthOfPassword(),
         ContainsAdjacentPairOfDigits(),
         AscendingDigits()
     )))
 
-    println("Part 1 answer: ${passwordCounter.countValidPassword(271973..785961)}")
+    println("Part 1 answer: ${passwordCounterPart1.countValidPassword(271973..785961)}")
+
+    val passwordCounterPart2 = ValidPasswordCounter(PasswordVerifier(listOf(
+        LengthOfPassword(),
+        ContainsAdjacentPairOfDigits(),
+        AscendingDigits(),
+        DoesNotContain3OrMoreAdjacentDigitsUnlessADifferentSinglePairExists()
+    )))
+
+    println("Part 2 answer: ${passwordCounterPart2.countValidPassword(271973..785961)}")
 }
