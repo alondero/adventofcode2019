@@ -54,7 +54,9 @@ The total number of direct and indirect orbits in this example is 42.
 
 What is the total number of direct and indirect orbits in your map data?
  */
-fun orbitalSystemFrom(systemMap: String) = systemMap.lineSequence().toList() // Any reason why .lines() struggles with type inference??
+typealias SpaceTransfer = Pair<SpaceObject, SpaceObject>
+
+fun orbitalSystemFrom(systemMap: String) = systemMap.lines() // Any reason why .lines() struggles with type inference??
     .flatMap { it.split(")") }
     .chunked(2)
     .fold(OrbitalSystem()) { system, (parent, objectThatOrbits) ->
@@ -67,13 +69,19 @@ fun orbitalSystemFrom(systemMap: String) = systemMap.lineSequence().toList() // 
         }
     }
 
-class OrbitalSystem() {
+class OrbitalSystem {
     var potentialCentreOfMasses: List<SpaceObject> = mutableListOf()
 
     fun find(spaceObjectName: String) = potentialCentreOfMasses.mapNotNull { it.find(spaceObjectName) }.firstOrNull()
 
     fun numberOfOrbits() = potentialCentreOfMasses.firstOrNull { it.parent == null }
         ?.let { it.numberOfOrbits(0) } ?: 0
+
+    fun orbitalTransfersBetween(from: String, to: String) = find(from)?.parent?.let { fromObject ->
+        find(to)?.parent?.let { toObject ->
+            fromObject.pathBetween(toObject)
+        }
+    }
 }
 
 data class SpaceObject(val name: String, var parent: SpaceObject? = null) {
@@ -84,6 +92,37 @@ data class SpaceObject(val name: String, var parent: SpaceObject? = null) {
         else -> objectsThatOrbit.mapNotNull { it.find(spaceObjectName) }.firstOrNull()
     }
 
+    fun pathBetween(spaceObject: SpaceObject): List<SpaceTransfer>? {
+        val pathBetweenObjects = mutableListOf<SpaceTransfer>()
+        var commonObject = this
+        var previousObject: SpaceObject? = null
+
+        // Go up
+        while (commonObject.find(spaceObject.name) == null) {
+            if (previousObject != null) {
+                pathBetweenObjects += previousObject to commonObject
+            }
+            previousObject = commonObject
+            commonObject = commonObject.parent!!
+        }
+
+        if (previousObject != null) {
+            pathBetweenObjects += previousObject to commonObject
+        }
+
+        // Then back down
+        return pathBetweenObjects.apply {
+            addAll(
+                commonObject.objectsThatOrbit.filter { it.find(spaceObject.name) != null }.fold(arrayListOf()) { path, objectThatOrbits ->
+                    path.apply {
+                        add(commonObject to objectThatOrbits)
+                        addAll(objectThatOrbits.pathBetween(spaceObject) ?: listOf())
+                    }
+                })
+        }
+    }
+
+
     fun addOrbit(orbitObject: SpaceObject) = this.apply {
         objectsThatOrbit += orbitObject
     }
@@ -93,8 +132,57 @@ data class SpaceObject(val name: String, var parent: SpaceObject? = null) {
     }
 }
 
+/*
+--- Part Two ---
+Now, you just need to figure out how many orbital transfers you (YOU) need to take to get to Santa (SAN).
+
+You start at the object YOU are orbiting; your destination is the object SAN is orbiting. An orbital transfer lets you move from any object to an object orbiting or orbited by that object.
+
+For example, suppose you have the following map:
+
+COM)B
+B)C
+C)D
+D)E
+E)F
+B)G
+G)H
+D)I
+E)J
+J)K
+K)L
+K)YOU
+I)SAN
+Visually, the above map of orbits looks like this:
+
+                          YOU
+                         /
+        G - H       J - K - L
+       /           /
+COM - B - C - D - E - F
+               \
+                I - SAN
+In this example, YOU are in orbit around K, and SAN is in orbit around I. To move from K to I, a minimum of 4 orbital transfers are required:
+
+K to J
+J to E
+E to D
+D to I
+Afterward, the map of orbits looks like this:
+
+        G - H       J - K - L
+       /           /
+COM - B - C - D - E - F
+               \
+                I - SAN
+                 \
+                  YOU
+What is the minimum number of orbital transfers required to move from the object YOU are orbiting to the object SAN is orbiting? (Between the objects they are orbiting - not between YOU and SAN.)
+ */
+
 fun main(args: Array<String>) {
     val orbitalSystem = orbitalSystemFrom(File(ClassLoader.getSystemResource("adventofcode/day6/input.txt").file).readText())
 
     println("Part 1 Answer: Number of Indirect and Direct Orbits: ${orbitalSystem.numberOfOrbits()}")
+    println("Part 2 Answer: Number of orbital transfers: ${orbitalSystem.orbitalTransfersBetween("YOU", "SAN")!!.size}")
 }
