@@ -16,4 +16,10 @@ class Day8Test {
         val pic = fromSIF("112211121222", width = 1, height = 4)
         assertThat(pic.layerWithLeastOccurrencesOf(1)?.index, equalTo(2))
     }
+
+    @Test
+    fun `render image collapses layers down to visible pixels`() {
+        assertThat(fromSIF("212220001111", width = 2, height = 2).render().toString(), equalTo("[11, 00]"))
+        assertThat(fromSIF("0222112222120000", width = 2, height = 2).render().toString(), equalTo("[01, 10]"))
+    }
 }

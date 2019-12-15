@@ -1,13 +1,32 @@
 package adventofcode2019.day8
 
-import adventofcode2019.day6.orbitalSystemFrom
 import java.io.File
 import java.lang.StringBuilder
 
-class SpaceImage(val layers: List<Layer>) {
+const val TRANSPARENT_COLOUR = '2'
+
+class SpaceImage(private val layers: List<Layer>, private val width: Int, private val height: Int) {
     override fun toString() = layers.toString()
     fun layerWithLeastOccurrencesOf(digit: Int) = layers.withIndex()
         .minBy { (_, layer) -> layer.occurrencesOf(digit) }
+
+    fun render() = layers.fold(transparentImage()) { image, layer ->
+        layer.rows.withIndex().fold(image) { image, (rowNumber, rowData) ->
+            rowData.chunked(1).withIndex().fold(image) { image, (pixelNumber, pixel) ->
+                image.apply {
+                    when (image[rowNumber][pixelNumber]) {
+                        TRANSPARENT_COLOUR -> image[rowNumber][pixelNumber] = pixel[0]
+                    }
+                }
+            }
+        }
+    }
+
+    private fun transparentImage() = (0 until height).map {
+        (0 until width).fold(StringBuilder()) { builder, _ ->
+            builder.append(TRANSPARENT_COLOUR)
+        }
+    }
 }
 
 class Layer(val rows: List<String>) {
@@ -18,7 +37,7 @@ class Layer(val rows: List<String>) {
 fun fromSIF(sif: String, width: Int, height: Int) =
     SpaceImage(sif.chunked(width * height)
         .map { it.chunked(width) }
-        .map { Layer(it) })
+        .map { Layer(it) }, width, height)
 
 /*
 --- Day 8: Space Image Format ---
@@ -48,5 +67,8 @@ fun main(args: Array<String>) {
     val layerWithFewest0s = image.layerWithLeastOccurrencesOf(0)
     println("""Part 1 Answer
             Layer with fewest 0s: ${layerWithFewest0s!!.index}
-            Number of 1s * Number of 2s: ${layerWithFewest0s!!.value!!.occurrencesOf(1) * layerWithFewest0s!!.value!!.occurrencesOf(2)}""")
+            Number of 1s * Number of 2s: ${layerWithFewest0s.value.occurrencesOf(1) * layerWithFewest0s.value.occurrencesOf(2)}""")
+
+    //  Replace the 0s and 1s to make more human readable
+    println("Part 2 Answer: \n${image.render().joinToString("\n").replace("0", " ").replace('1', '\u25A0')}")
 }
